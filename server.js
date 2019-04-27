@@ -7,11 +7,19 @@ require('dotenv').config();
 const express = require('express'); //Express does the heavy lifting
 const cors = require('cors'); //Cross Origin Resource Sharing
 const superagent = require('superagent');
+const pg = require('pg'); //postgresql
 
 // Application Setup
 const app = express();
 app.use(cors()); // tell express to use cors
 const PORT = process.env.PORT;
+
+//Connect to the database
+const client = new pg.Client(process.env.DATABASE_URL);
+client.connect();
+client.on('error', err => console.log(err));
+
+
 
 // Incoming API Routes
 app.get('/location', searchToLatLong);
@@ -28,19 +36,57 @@ app.get('/testing', (request, response) => {
 
 // Helper Functions
 
+//What we need to do to refactor  for SQL storage
+//1. We need to check the database to see if the location exists
+// a. If it exists => get the location from the database
+// b. return the location info to the front end
+//2. If the location is not in the database
+// a.Get the location from the API
+// b. Run the data through the constructor
+// c. Save it to the database
+// d. Add the newlt added location id to the location object
+// e. Return the location to the front
+
 function searchToLatLong(request, response) {
-  //Define the URL for the GEOCODE API
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODE_API_KEY}`;
-  // console.log(url);
+  let query = request.query.data;
 
-  superagent.get(url)
+  //Define the search query
+  let sql = `SELECT * FROM locations WHERE search_query=$1;`;
+  let values = [query];
+
+  //Make the query of the database
+  client.query(sql, values)
     .then(result => {
-      const location = new Location(request.query.data, result);
-      response.send(location);
-    })
-    .catch(err => handleError(err, response));
-}
+      //Did the database return any info?
+      if (result.rowCount > 0) {
+        console.log('result from Database',result.rows[0]);
+        response.send(result.rows[0]);
+      } else {
+        //Otherwise go get the data from the API
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODE_API_KEY}`;
 
+        superagent.get(url)
+          .then(result => {
+            if(result.body.results.length) {
+              throw 'NO DATA';
+            } else {
+              let location = new Location(query, result.body.results[0]);
+
+              let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, logitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
+              let newValues = Object.values(location);
+
+              client.query(newSQL, newValues)
+                .then(data => {
+                //attach the returning id to the location object
+                  location.id = data.rows[0].id;
+                  response.send(location);
+                });
+            }
+          })
+          .catch(err => handleError(err, response));
+      }
+    })
+}
 // Constructor for location data
 function Location(query, res) {
   this.search_query = query;
@@ -49,18 +95,46 @@ function Location(query, res) {
   this.longitude = res.body.results[0].geometry.location.lng;
 }
 
-function getWeather(request, response) {
-  const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
-  // console.log(url);
+function getWeather (request, response) {
+  let query = request.query.data.id;
 
-  superagent.get(url)
+  //Define the search query
+  let sql = `SELECT * FROM weathers WHERE search_query=$1;`;
+  let values = [query];
+
+  client(sql, values)
     .then(result => {
-      //consoel.log(result.body);
-      const weatherSummaries = result.body.daily.data.map(day => new Weather(day));
-      response.send(weatherSummaries);
+      if (result.rowCount > 0) {
+        console.log('Weather from SQL');
+        response.send(result.rows);
+      } else {
+        const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
+
+        return superagent.get(url)
+          .then(weatherResults => {
+            console.log('Weather from API');
+            if (!weatherResults.body.daily.data.length) {
+              throw 'NO DATA';
+            } else {
+              const weatherSummaries = weatherResults.body.daily.data.map(day => {
+                let summary = new Weather(day);
+                summary.id = query;
+
+                let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, logitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
+                let newValues = Object.values(location);
+                client.query(newSQL, newValues);
+
+                return summary
+              });
+              response.send(weatherSummaries);
+            }
+
+          })
+          .catch(err => handleError(err, response));
+      }
     })
-    .catch(err => handleError(err, response));
 }
+
 
 function Weather(day) {
   this.forecast = day.summary;
@@ -70,7 +144,7 @@ function Weather(day) {
 function getEventBrite(request, response) {
   const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.PERSONAL_OAUTH_TOKEN}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
 
-  console.log(url);
+  // console.log(url);
 
   superagent.get(url)
     .then(result => {
