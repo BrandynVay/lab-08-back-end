@@ -1,6 +1,6 @@
 # City Explorer
 
-**Author**: Brandyn Vay, Chance Harmon, Aileen Murphy
+**Author**: Brandyn Vay, Meron Sibani, and Adriana Graybill
 **Version**: 1.3.2
 
 ## Overview
@@ -54,11 +54,11 @@ Actual time needed to complete: 4 hours
 
 ----------------------------------------->
 
-Number and name of feature:
+Number and name of feature: Brandyn Vay, Meron Sibani, and Adriana Graybill
 
-Estimate of time needed to complete:
+Estimate of time needed to complete: 3 hours
 
-Start time:
+Start time: 4:30pm
 
 Finish time:
 
