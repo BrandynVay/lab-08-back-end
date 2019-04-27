@@ -93,5 +93,5 @@ function Event(events) {
 //Error Handler
 function handleError(err, response) {
   console.error(err);
-  if (response) response.status(500).send('OPPS');
+  if (response) response.status(500).send('OOPS');
 }
