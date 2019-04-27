@@ -25,6 +25,7 @@ Libraries: jQuery, and node.js
 ## Credits and Collaborations
 <!-- Give credit (and a link) to other people or resources that helped you build this application. -->
 ------------------------------------------>
+
 Collaborators: Brandyn Vay & Chance Harmon
 
 Number and name of feature: 1 - weather
@@ -36,7 +37,9 @@ Start time: 2:00 pm - 6:00 pm 4-24-2019
 Finish time: 3:00 pm - 4:00 pm 4-25-2019
 
 Actual time needed to complete: 4 hours
+
 ------------------------------------------>
+
 Collaborators: Brandyn Vay & Aileen Murphy
 
 Number and name of feature: 1 - event-brite-api
@@ -48,7 +51,9 @@ Start time: 6:30pm - 9:30 pm 4-24-2019
 Finish time: 6:00 - 7:00 pm 4-25-2019
 
 Actual time needed to complete: 4 hours
+
 ----------------------------------------->
+
 Number and name of feature:
 
 Estimate of time needed to complete:
@@ -58,4 +63,6 @@ Start time:
 Finish time:
 
 Actual time needed to complete:
+
 ----------------------------------------->
+
