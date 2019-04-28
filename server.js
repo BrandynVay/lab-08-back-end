@@ -67,12 +67,12 @@ function searchToLatLong(request, response) {
 
         superagent.get(url)
           .then(result => {
-            if(result.body.results.length) {
-              throw 'NO DATA';
+            if(!result.body.results.length) {
+              throw 'NO DATA LOCATION';
             } else {
               let location = new Location(query, result.body.results[0]);
 
-              let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, logitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
+              let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, longitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
               let newValues = Object.values(location);
 
               client.query(newSQL, newValues)
@@ -88,11 +88,11 @@ function searchToLatLong(request, response) {
     })
 }
 // Constructor for location data
-function Location(query, res) {
+function Location(query, location) {
   this.search_query = query;
-  this.formatted_query = res.body.results[0].formatted_address;
-  this.latitude = res.body.results[0].geometry.location.lat;
-  this.longitude = res.body.results[0].geometry.location.lng;
+  this.formatted_query = location.formatted_address;
+  this.latitude = location.geometry.location.lat;
+  this.longitude = location.geometry.location.lng;
 }
 
 function getWeather (request, response) {
@@ -102,7 +102,7 @@ function getWeather (request, response) {
   let sql = `SELECT * FROM weathers WHERE search_query=$1;`;
   let values = [query];
 
-  client(sql, values)
+  client.query(sql, values)
     .then(result => {
       if (result.rowCount > 0) {
         console.log('Weather from SQL');
@@ -114,17 +114,17 @@ function getWeather (request, response) {
           .then(weatherResults => {
             console.log('Weather from API');
             if (!weatherResults.body.daily.data.length) {
-              throw 'NO DATA';
+              throw 'NO DATA WEATHER';
             } else {
               const weatherSummaries = weatherResults.body.daily.data.map(day => {
                 let summary = new Weather(day);
                 summary.id = query;
 
-                let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, logitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
+                let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, longitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
                 let newValues = Object.values(location);
                 client.query(newSQL, newValues);
 
-                return summary
+                return summary;
               });
               response.send(weatherSummaries);
             }
@@ -141,18 +141,57 @@ function Weather(day) {
   this.time = new Date(day.time * 1000).toString().slice(0, 15);//taking the time in Epoch and converting it in to a string so its readable to the user.
 }
 
-function getEventBrite(request, response) {
-  const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.PERSONAL_OAUTH_TOKEN}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
+// function getEventBrite(request, response) {
+//   const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.PERSONAL_OAUTH_TOKEN}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
 
-  // console.log(url);
+//   // console.log(url);
 
-  superagent.get(url)
+//   superagent.get(url)
+//     .then(result => {
+//       console.log(result);
+//       const events = result.body.events.map(event => new Event(event));
+//       response.send(events);
+//     })
+//     .catch(err => handleError(err, response));
+// }
+
+function getEventBrite (request, response) {
+  let query = request.query.data.id;
+
+  //Define the search query
+  let sql = `SELECT * FROM weathers WHERE search_query=$1;`;
+  let values = [query];
+
+  client.query(sql, values)
     .then(result => {
-      console.log(result);
-      const events = result.body.events.map(event => new Event(event));
-      response.send(events);
+      if (result.rowCount > 0) {
+        console.log('Event from SQL');
+        response.send(result.rows);
+      } else {
+        const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.PERSONAL_OAUTH_TOKEN}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
+
+        return superagent.get(url)
+          .then(eventResults => {
+            console.log('Events from API');
+            if (!eventResults.body.events.length) {
+              throw 'NO DATA EVENTS';
+            } else {
+              const eventSummaries = eventResults.body.events.map(event => {
+                let summary = new Event(event);
+                summary.id = query;
+
+                let newSQL = `INSERT INTO locations (search_query, formatted_address, latitude, longitude) VALUES ($1, $2, $3, $4) RETURNING ID;`;
+                let newValues = Object.values(location);
+                client.query(newSQL, newValues);
+
+                return summary;
+              })
+              response.send(eventSummaries);
+            }
+          })
+          .catch(err => handleError(err, response));
+      }
     })
-    .catch(err => handleError(err, response));
 }
 
 // eventbrite constructor
