@@ -165,7 +165,7 @@ function getEvents (request, response) {
               const newEvent = new Event(event);
               newEvent.id = query;
 
-              let newSQL = `INSERT INTO EVENTS (eventdata, link, name, event_date, location_id, summary) VALUES ($1, $2, $3, $4, $5);`;
+              let newSQL = `INSERT INTO events (eventdata, link, name, event_date, location_id, summary) VALUES ($1, $2, $3, $4, $5, $6);`;
               let newValues = Object.values(newEvent);
               client.query(newSQL, newValues);
 
