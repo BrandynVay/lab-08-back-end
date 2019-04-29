@@ -85,6 +85,7 @@ function searchToLatLong(request, response) {
     })
 }
 // Constructor for location data
+
 function Location(query, location) {
   this.search_query = query;
   this.formatted_query = location.formatted_address;
