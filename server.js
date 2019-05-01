@@ -155,8 +155,8 @@ function getEvents (request, response) {
        console.log('Event from SQL');
         response.send(result.rows[0]);
       }
-      const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.PERSONAL_OAUTH_TOKEN}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
-
+      const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.EVENTBRITE_API_KEY}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
+console.log('event', url);
       superagent.get(url)
         .then(eventResults => {
           console.log('Events from API');
