@@ -99,6 +99,8 @@ function getWeather (request, response) {
   let sql = `SELECT * FROM weathers WHERE location_id=$1;`;
   let values = [query];
 
+  
+
   client.query(sql, values)
     .then(result => {
       if (result.rowCount > 0) {
@@ -106,7 +108,7 @@ function getWeather (request, response) {
         response.send(result.rows);
       } else {
         const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
-
+console.log(url);
         return superagent.get(url)
           .then(weatherResults => {
             console.log('Weather from API');
@@ -150,11 +152,11 @@ function getEvents (request, response) {
   client.query(sql, values)
     .then(result => {
       if (result.rowCount > 0) {
-        console.log('Event from SQL');
+       console.log('Event from SQL');
         response.send(result.rows[0]);
       }
-      const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.PERSONAL_OAUTH_TOKEN}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
-
+      const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.EVENTBRITE_API_KEY}&location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue`;
+console.log('event', url);
       superagent.get(url)
         .then(eventResults => {
           console.log('Events from API');
