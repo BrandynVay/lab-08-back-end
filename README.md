@@ -1,7 +1,7 @@
 # City Explorer
 
 **Author**: Brandyn Vay, Meron Sibani, and Adriana Graybill
-**Version**: 1.3.2
+**Version**: 1.8.4
 
 ## Overview
 
@@ -13,7 +13,7 @@ multiple API's to tell you anything from the weather for the next eight days, to
 
 ## Architecture
 
-Language's: Javascript, HTML, and CSS
+Language's: Javascript, HTML, CSS, and SQL
 Libraries: jQuery, and node.js
 
 ## Change Log
@@ -58,10 +58,10 @@ Number and name of feature: Brandyn Vay, Meron Sibani, and Adriana Graybill
 
 Estimate of time needed to complete: 3 hours
 
-Start time: 4:30pm
+Start time: 4:30pm - 6:00pm
 
-Finish time:
+Finish time: 6:00pm
 
-Actual time needed to complete:
+Actual time needed to complete: 5 hours
 
 ----------------------------------------->
